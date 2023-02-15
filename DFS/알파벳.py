@@ -1,19 +1,16 @@
+# 파이썬 sys recursion limit 크게 하니까 메모리 초과나네
+# recursion늘리면 메모리 늘어남
 import sys
-sys.setrecursionlimit(10**9)
 input = sys.stdin.readline
 
 r, c = map(int, input().split())
-graph = [[] for _ in range(r)]
-remember = dict()
-
-for i in range(r):
-    graph[i].extend(list(input().strip()))
-    for j in graph[i]:
-        remember[j] = 0
+# map(lambda x: str(x), A)
+graph = [list(map(lambda x: ord(x)-65, input().rstrip())) for _ in range(r)]
+remember = [0] * 26
         
 dx = [0, 0, 1, -1]
 dy = [1, -1, 0, 0]
-ans = 0
+ans = 1
 
 def dfs(x, y, cnt):
     global ans, remember
