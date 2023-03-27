@@ -1,107 +1,44 @@
-import sys
-from collections import defaultdict, deque
-input = sys.stdin.readline
-
+# 1. 회전 
+# 2. 스택 & 큐
 N = int(input())
-K = int(input())
-K_list = [list(map(int, input().split())) for _ in range(K)]
+board = [[0]*N for _ in range(N)]
+snake_info = []
+y, x, d = 0, 0, 0 # 뱀이 머리 위치 좌표와 방향 저장할 변수
+snake_list = [[0, 0]] # 뱀이 어디에 있는지 좌표를 저장할 리스트
+dirs = [[0, 1], [-1, 0], [0, -1], [1, 0]]
+info = 0 
+time = 0
 
-L = int(input())
-L_list = [list(map(str, input().split())) for _ in range(L)]
-L_dict = defaultdict(list)
-R_dict = defaultdict(list)
-
-graph = [[0] * N for _ in range(N)]
-visited = [[0] * N for _ in range(N)]
-
-for k in K_list:
-    graph[k[0]-1][k[1]-1] = 'K'
-for l in L_list:
-    if l[1] == 'L':
-        L_dict['L'].append(int(l[0]))
-    else:
-        R_dict['R'].append(int(l[0]))
-
-R_W = [(0,1), (1,0), (0,-1), (-1,0)] 
-L_W =[(0,1),(-1,0), (0,-1), (1,0)]
-
-def turn_left(WW, cnt):
-    if WW == 'L' or WW == 'X':
-        dx = L_W[cnt+1][0]
-        dy = L_W[cnt+1][1]
-    else:
-        if cnt % 2 == 0:
-            dx = L_W[cnt+1][0]
-            dy = L_W[cnt+1][1]
-        else:
-            dx = L_W[cnt-1][0]
-            dy = L_W[cnt-1][1]
+# 사과 위치 저장하기
+for _ in range(int(input())):
+  i, j = map(int, input().split())
+  board[i-1][j-1] = 1
     
-    return dx, dy
-def turn_right(WW, cnt):
-    if WW == 'R' or WW == 'X':
-        dx = R_W[cnt+1][0]
-        dy = R_W[cnt+1][1]
-    else:
-        if cnt % 2 == 0:
-            dx = R_W[cnt+1][0]
-            dy = R_W[cnt+1][1]
-        else:
-            dx = R_W[cnt-1][0]
-            dy = R_W[cnt-1][1]
-    
-    return dx, dy
+# 뱀의 방향 정보 저장하기
+for _ in range(int(input())):
+  X, C = map(str, input().split())
+  snake_info.append([int(X), C])
 
-def move(x_2, y_2):
-    q = deque([[x_2, y_2]])
-    dx = [0, 0, 1, -1]
-    dy = [1, -1, 0, 0]
-    while q:
-        X = q.popleft()
-        for i in range(4):
-            nx = X[0] + dx[i]
-            ny = X[1] + dy[i]
-            if 0<= nx < N and 0 <= ny < N and visited[nx][ny]:
-                return nx, ny
-                
-cnt = 0
-ans = 0
-dx, dy = (0, 1)
+while True:
+  time += 1
+  y, x = y + dirs[d][0], x + dirs[d][1]
+  # 종료조건
+  if [y, x] in snake_list: break # 뱀이 자기자신과 만날 경우
+  if y < 0 or x < 0 or y >= N or x >= N: # 벽에서 벗어난 경우
+    break
 
-def dfs(x1, y1, x2, y2, W):
-    global dx, dy, cnt, ans
-    cnt %= 4
+  if board[y][x]== 1: # 사과일 경우
+    board[y][x] = 0 
+  else:
+    snake_list.pop(0) # 사과가 없기에 뱀의 꼬리 부분이 이동하여 빼주기
 
-    # 1. 출발
-    nx, ny = x1+dx, y1+dy
-    if nx < 0 or N <= nx or ny <0 or N <= ny:
-        ans = visited[x1][y1]
-        return 
-    # 2. 방향 전환은 동시에 해주고, 적용은 다음 턴
-    if visited[x1][y1] in L_dict['L']:
-        dx, dy = turn_left(W, cnt)
-        W = 'L'
-        cnt += 1 
-    elif visited[x1][y1] in R_dict['R']:
-        dx, dy = turn_right(W, cnt)
-        W = 'R'
-        cnt += 1
-    
-    # 3. 뱀 몸 물면 끝
-    if visited[nx][ny]:
-        ans = visited[x1][y1]
-        return 
-    else:
-        visited[nx][ny] = visited[x1][y1] + 1
+  snake_list.append([y, x]) # 뱀의 머리 부분 저장
 
-    if graph[nx][ny] != 'K':
-        visited[x2][y2] = False
-        x2, y2 = move(x2, y2)
-        if nx != x2 and ny != y2: 
-            visited[x2][y2] = True
-        
-    dfs(nx, ny, x2, y2, W)
+  if info < len(snake_info) and time == snake_info[info][0]:
+    if snake_info[info][1] == "L": # 왼쪽으로 방향을 돌리기
+      d = (d + 1) % 4
+    else: # 오른쪽으로 방향 돌리기
+      d = (d + 3) % 4
+    info += 1
 
-visited[0][0] = True
-dfs(0,0,0,0, 'X')
-print(ans)
+print(time)
